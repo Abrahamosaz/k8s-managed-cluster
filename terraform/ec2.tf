@@ -79,6 +79,22 @@ resource "aws_security_group" "master_node" {
     cidr_blocks = [aws_vpc.main.cidr_block]
   }
 
+  ingress {
+    description = "BGP (Calico) from VPC only"
+    from_port   = 179
+    to_port     = 179
+    protocol    = "tcp"
+    cidr_blocks = [aws_vpc.main.cidr_block]
+  }
+
+  ingress {
+    description = "VXLAN overlay from VPC only"
+    from_port   = 4789
+    to_port     = 4789
+    protocol    = "udp"
+    cidr_blocks = [aws_vpc.main.cidr_block]
+  }
+
   egress {
     from_port        = 0
     to_port          = 0
@@ -115,6 +131,22 @@ resource "aws_security_group" "worker_node" {
     from_port   = 10250
     to_port     = 10250
     protocol    = "tcp"
+    cidr_blocks = [aws_vpc.main.cidr_block]
+  }
+
+  ingress {
+    description = "BGP (Calico) from VPC only"
+    from_port   = 179
+    to_port     = 179
+    protocol    = "tcp"
+    cidr_blocks = [aws_vpc.main.cidr_block]
+  }
+
+  ingress {
+    description = "VXLAN overlay from VPC only"
+    from_port   = 4789
+    to_port     = 4789
+    protocol    = "udp"
     cidr_blocks = [aws_vpc.main.cidr_block]
   }
 
