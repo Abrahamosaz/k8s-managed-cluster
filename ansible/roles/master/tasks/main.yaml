@@ -1,0 +1,51 @@
+---
+- name: Initialize Kubernetes control plane (kubeadm init)
+  ansible.builtin.command: "kubeadm init --pod-network-cidr={{ pod_network_cidr }}"
+  args:
+    creates: /etc/kubernetes/admin.conf
+
+- name: Look up SSH user's home directory
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ ansible_user | default('ubuntu') }}"
+
+- name: Set kubeconfig home path
+  ansible.builtin.set_fact:
+    kubeconfig_home: "{{ getent_passwd[ansible_user | default('ubuntu')][4] }}"
+
+- name: Ensure kubeconfig directory exists for the SSH user
+  ansible.builtin.file:
+    path: "{{ kubeconfig_home }}/.kube"
+    state: directory
+    mode: "0700"
+    owner: "{{ ansible_user | default('ubuntu') }}"
+    group: "{{ ansible_user | default('ubuntu') }}"
+
+- name: Copy admin kubeconfig to user home
+  ansible.builtin.copy:
+    remote_src: true
+    src: /etc/kubernetes/admin.conf
+    dest: "{{ kubeconfig_home }}/.kube/config"
+    mode: "0600"
+    owner: "{{ ansible_user | default('ubuntu') }}"
+    group: "{{ ansible_user | default('ubuntu') }}"
+
+- name: Install Calico CNI
+  ansible.builtin.command: >
+    kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/{{ calico_version }}/manifests/calico.yaml
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  register: calico_apply
+  changed_when: "'configured' in (calico_apply.stdout | lower) or 'created' in (calico_apply.stdout | lower)"
+
+- name: Create kubeadm join command for workers
+  ansible.builtin.command: kubeadm token create --print-join-command
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  register: join_command
+  changed_when: false
+
+- name: Expose join command to other hosts
+  ansible.builtin.set_fact:
+    kubeadm_join_command: "{{ join_command.stdout }}"
+

@@ -1,0 +1,19 @@
+---
+- name: Prepare all Kubernetes nodes
+  hosts: common
+  become: true
+  roles:
+    - common
+
+- name: Bootstrap control plane
+  hosts: master_node
+  become: true
+  roles:
+    - master
+
+- name: Join worker nodes
+  hosts: worker_node
+  become: true
+  roles:
+    - worker
+
