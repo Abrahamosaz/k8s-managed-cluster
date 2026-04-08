@@ -12,10 +12,10 @@ output "private_subnet_ids" {
 
 output "ec2_instances_ips" {
   value = {
-    master = {
-      private_ip = aws_instance.master_node.private_ip
-      public_ip  = aws_instance.master_node.public_ip
-    }
+    masters = [for w in aws_instance.master_node : {
+      private_ip = w.private_ip
+      public_ip  = w.public_ip
+    }]
     workers = [for w in aws_instance.worker_node : {
       private_ip = w.private_ip
       public_ip  = w.public_ip

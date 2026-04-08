@@ -19,12 +19,6 @@ data "aws_key_pair" "k8s_cluster_nodes" {
   key_name = "k8s-cluster-nodes"
 }
 
-locals {
-  worker_node_count         = 1
-  master_node_instance_type = "t3.small"
-  worker_node_instance_type = "t3.small"
-}
-
 
 resource "aws_security_group" "master_node" {
   name        = "${var.resource_tags["Project"]}-master-node-sg"
@@ -194,8 +188,9 @@ resource "aws_security_group" "worker_node" {
 
 
 resource "aws_instance" "master_node" {
+  count                       = var.master_node_count
   ami                         = data.aws_ami.ubuntu.id
-  instance_type               = local.master_node_instance_type
+  instance_type               = var.master_node_instance_type
   key_name                    = data.aws_key_pair.k8s_cluster_nodes.key_name
   subnet_id                   = aws_subnet.public_subnet[0].id
   vpc_security_group_ids      = [aws_security_group.master_node.id]
@@ -204,16 +199,16 @@ resource "aws_instance" "master_node" {
   tags = merge(
     var.resource_tags,
     {
-      Name = "${var.resource_tags["Project"]}-master-node"
+      Name = "${var.resource_tags["Project"]}-master${count.index}"
     }
   )
 }
 
 
 resource "aws_instance" "worker_node" {
-  count                       = local.worker_node_count
+  count                       = var.worker_node_count
   ami                         = data.aws_ami.ubuntu.id
-  instance_type               = local.worker_node_instance_type
+  instance_type               = var.worker_node_instance_type
   key_name                    = data.aws_key_pair.k8s_cluster_nodes.key_name
   subnet_id                   = aws_subnet.public_subnet[0].id
   vpc_security_group_ids      = [aws_security_group.worker_node.id]

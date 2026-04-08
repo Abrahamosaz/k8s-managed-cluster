@@ -34,3 +34,28 @@ variable "enable_ngw" {
   type        = bool
   default     = false
 }
+
+
+variable "master_node_count" {
+  description = "Number of control panel node in my cluster"
+  type        = number
+  default     = 1
+}
+
+variable "worker_node_count" {
+  description = "Number of worker node in my cluster"
+  type        = number
+  default     = 1
+}
+
+variable "master_node_instance_type" {
+  description = "Instance type for master nodes"
+  type        = string
+  default     = "t3.small"
+}
+
+variable "worker_node_instance_type" {
+  description = "Instance type for worker nodes"
+  type        = string
+  default     = "t3.small"
+}
