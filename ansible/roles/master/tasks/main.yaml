@@ -11,7 +11,7 @@
 
 - name: Set kubeconfig home path
   ansible.builtin.set_fact:
-    kubeconfig_home: "{{ getent_passwd[ansible_user | default('ubuntu')][4] }}"
+    kubeconfig_home: "{{ ansible_facts.getent_passwd[ansible_user | default('ubuntu')][4] }}"
 
 - name: Ensure kubeconfig directory exists for the SSH user
   ansible.builtin.file:
